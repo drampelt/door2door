@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+              android:contentAuthority="lt.danielrampe.door2door.provider"
+              android:accountType="lt.danielrampe.door2door"
+              android:userVisible="true"
+              android:allowParallelSyncs="false"
+              android:isAlwaysSyncable="false"
+              android:supportsUploading="true"/>
