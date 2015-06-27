@@ -1,37 +1,57 @@
 package lt.danielrampe.door2door;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsMenu;
+
+import java.io.IOException;
+
+import lt.danielrampe.door2door.authentication.AccountAuthenticator;
+
+@EActivity(R.layout.activity_main)
+@OptionsMenu(R.menu.menu_main)
 public class MainActivity extends AppCompatActivity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    @AfterViews
+    void init() {
+        AccountManager accountManager = AccountManager.get(this);
+        Account[] accounts = accountManager.getAccountsByType(AccountAuthenticator.ACCOUNT_TYPE);
+        if (accounts.length > 0) {
+            final Account account = accounts[0];
+            accountManager.getAuthToken(account, AccountAuthenticator.FULL_TOKEN_TYPE, null, true, new AccountManagerCallback<Bundle>() {
+                @Override
+                public void run(AccountManagerFuture<Bundle> future) {
+                    if (future.isDone() && !future.isCancelled()) {
+                        try {
+                            Bundle result = future.getResult();
+                            String authToken = result.getString(AccountManager.KEY_AUTHTOKEN);
+                            Log.d(LOG_TAG, "Got authtoken: " + authToken);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }, null);
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    @Click(R.id.login_button)
+    void login() {
+        LoginActivity_.intent(this).start();
     }
 }
